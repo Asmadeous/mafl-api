@@ -10,6 +10,7 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
     build-essential \
     libpq-dev \
+    postgresql-client \
     nodejs \
     yarn \
     libvips \
@@ -22,7 +23,11 @@ RUN gem install bundler
 
 # Copy Gemfiles and install gems
 COPY Gemfile Gemfile.lock ./
-RUN bundle install --jobs 4 --retry 3
+RUN bundle install --jobs 4 --retry 3 && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
+
+# Precompile bootsnap
+RUN bundle exec bootsnap precompile --gemfile
 
 # Copy rest of the app
 COPY . .
