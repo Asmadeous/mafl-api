@@ -70,7 +70,7 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
   config.action_mailer.delivery_method = :resend
 config.action_mailer.resend_settings = {
-  api_key: Rails.application.credentials.resend[:api_key]
+  api_key: Rails.application.credentials.resend_api_key
 }
 config.action_mailer.default_url_options = { host: "literally-immortal-sunbird.ngrok-free.app" }
 config.action_mailer.perform_deliveries = true
