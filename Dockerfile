@@ -32,9 +32,6 @@ RUN bundle exec bootsnap precompile --gemfile
 # Copy rest of the app
 COPY . .
 
-# Precompile assets (optional but useful for performance)
-RUN bundle exec rake assets:precompile
-
 # Ensure proper permissions
 RUN chmod +x bin/*
 
