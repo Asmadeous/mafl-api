@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_12_170106) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_12_210626) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "uuid-ossp"
@@ -59,7 +59,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_12_170106) do
     t.string "featured_image"
     t.uuid "employee"
     t.uuid "category"
-    t.string "status"
+    t.string "status", null: false
     t.boolean "is_featured"
     t.datetime "published_at"
     t.datetime "created_at", null: false

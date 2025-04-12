@@ -1,17 +1,17 @@
-class Blog::PostsController < ApplicationController
+class PostsController < ApplicationController
   before_action :authenticate_employee!, only: [ :create, :update ]
   before_action :restrict_to_admin, only: [ :create, :update ]
+  before_action :set_post, only: [ :show, :update, :tags ]
 
   def index
-    posts = Blog::Post.where(status: "published").includes(:employee, :category, :tags)
+    posts = Post.where(status: "published").includes(:employee, :category, :tags)
     render json: {
       posts: posts.map { |post| post_json(post) }
     }, status: :ok
   end
 
   def show
-    post = Blog::Post.includes(:employee, :category, :tags).find_by(slug: params[:slug])
-    render json: { post: post_json(post) }, status: :ok
+    render json: { post: post_json(@post) }, status: :ok
   end
 
   def create
@@ -25,18 +25,44 @@ class Blog::PostsController < ApplicationController
   end
 
   def update
-    post = Blog::Post.find_by(slug: params[:slug])
-    if post.update(post_params)
-      render json: { message: "Post updated successfully.", post: post_json(post) }, status: :ok
+    if @post.update(post_params)
+      render json: { message: "Post updated successfully.", post: post_json(@post) }, status: :ok
     else
-      render json: { message: post.errors.full_messages }, status: :unprocessable_entity
+      render json: { message: @post.errors.full_messages }, status: :unprocessable_entity
     end
+  end
+
+  def tags
+    render json: { tags: @post.tags.as_json(only: [ :id, :name, :slug ]) }, status: :ok
+  end
+
+  def related
+    # Find posts with same category or shared tags, excluding the specified post
+    related_posts = Post.where(status: "published")
+                       .where(category: params[:category_id])
+                       .or(Post.joins(:tags).where(blog_tags: { id: params[:tag_ids] }))
+                       .where.not(id: params[:exclude_post_id])
+                       .includes(:employee, :category, :tags)
+                       .distinct
+                       .limit(5)
+    render json: {
+      posts: related_posts.map { |post| post_json(post) }
+    }, status: :ok
   end
 
   private
 
+  def set_post
+    @post = Post.includes(:employee, :category, :tags).find_by!(slug: params[:slug])
+  rescue ActiveRecord::RecordNotFound
+    render json: { message: "Post not found" }, status: :not_found
+  end
+
   def post_params
-    params.require(:post).permit(:title, :slug, :content, :excerpt, :featured_image, :category_id, :status, :is_featured, :published_at, tag_ids: [])
+    params.require(:post).permit(
+      :title, :slug, :content, :excerpt, :featured_image, :category, :status,
+      :is_featured, :published_at, tag_ids: []
+    )
   end
 
   def restrict_to_admin
@@ -53,10 +79,10 @@ class Blog::PostsController < ApplicationController
 
   def post_json(post)
     post.as_json.merge(
-      author_name: post.employee.full_name,
-      author_avatar_url: post.employee.avatar.attached? ? rails_blob_url(post.employee.avatar) : nil,
-      category: post.category.as_json,
-      tags: post.tags.as_json
+      author_name: post.employee&.full_name,
+      author_avatar_url: post.employee&.avatar&.attached? ? rails_blob_url(post.employee.avatar) : nil,
+      category: post.category&.as_json(only: [ :id, :name, :slug, :description ]),
+      tags: post.tags.as_json(only: [ :id, :name, :slug ])
     )
   end
 end

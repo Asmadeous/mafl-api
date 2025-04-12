@@ -1,4 +1,6 @@
+# config/routes.rb
 Rails.application.routes.draw do
+
   devise_for :users, controllers: {
     sessions: "users/sessions",
     registrations: "users/registrations",
@@ -28,10 +30,15 @@ Rails.application.routes.draw do
   get "employees/profile", to: "employees/profiles#show"
   put "employees/profile", to: "employees/profiles#update"
 
-  get "blog/posts", to: "blog/posts#index"
-  get "blog/posts/:slug", to: "blog/posts#show"
-  post "blog/posts", to: "blog/posts#create"
-  put "blog/posts/:slug", to: "blog/posts#update"
+  # Blog routes
+  scope :blog do
+    resources :posts, only: [:index, :show, :create, :update], param: :slug, controller: "blog/posts" do
+      get :tags, on: :member # /blog/posts/:slug/tags
+    end
+    get "categories", to: "blog/categories#index" # /blog/categories
+    get "tags", to: "blog/tags#index" # /blog/tags
+    get "related", to: "blog/posts#related" # /blog/related
+  end
 
   get "notifications", to: "notifications#index"
   put "notifications/:id", to: "notifications#update"
