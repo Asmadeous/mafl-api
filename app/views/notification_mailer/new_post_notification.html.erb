@@ -1,0 +1,8 @@
+<h1>New Blog Post</h1>
+<p>Hi <%= @user.full_name %>,</p>
+<p>A new blog post titled "<%= @post.title %>" has been published by <%= @post.employee.full_name %>.</p>
+<% if @post.employee.avatar.attached? %>
+  <img src="<%= rails_blob_url(@post.employee.avatar) %>" alt="Author Avatar" style="max-width: 100px;">
+<% end %>
+<p><%= @notification.message %></p>
+<p>Check it out at: <%= @post.slug %></p>

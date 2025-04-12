@@ -1,0 +1,65 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
+  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
+  username: <%= ENV.fetch("POSTGRES_USER", "mafl_api_user") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", "M@fl1Logistics") %>
+
+development:
+  primary:
+    <<: *default
+    database: mafl_api_development
+    migrations_paths: db/migrate
+  cache:
+    <<: *default
+    database: mafl_api_development_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    database: mafl_api_development_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: mafl_api_development_cable
+    migrations_paths: db/cable_migrate
+
+test:
+  primary:
+    <<: *default
+    database: mafl_api_test
+    migrations_paths: db/migrate
+  cache:
+    <<: *default
+    database: mafl_api_test_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    database: mafl_api_test_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: mafl_api_test_cable
+    migrations_paths: db/cable_migrate
+
+production:
+  primary:
+    <<: *default
+    database: <%= ENV['POSTGRES_DB'] || 'mafl_api_production' %>
+    migrations_paths: db/migrate
+  cache:
+    <<: *default
+    database: <%= ENV['POSTGRES_DB'] || 'mafl_api_production' %>_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    database: <%= ENV['POSTGRES_DB'] || 'mafl_api_production' %>_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: <%= ENV['POSTGRES_DB'] || 'mafl_api_production' %>_cable
+    migrations_paths: db/cable_migrate
+
+
+
