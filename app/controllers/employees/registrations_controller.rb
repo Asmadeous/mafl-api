@@ -1,5 +1,6 @@
 class Employees::RegistrationsController < Devise::RegistrationsController
   respond_to :json
+  skip_before_action :authenticate_user!
   before_action :restrict_admin_signup, only: [ :create ]
 
   private
@@ -24,8 +25,12 @@ class Employees::RegistrationsController < Devise::RegistrationsController
   end
 
   def restrict_admin_signup
-    if params[:employee][:role] == "admin" && !current_employee&.admin?
-      render json: { message: "Only admins can create admin accounts." }, status: :forbidden
+    if params[:employee][:role] == "admin"
+      if Employee.exists?(role: "admin")
+        unless current_employee&.admin?
+          render json: { message: "Only admins can create admin accounts." }, status: :forbidden
+        end
+      end
     end
   end
 end

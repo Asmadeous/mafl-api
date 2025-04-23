@@ -1,10 +1,10 @@
-class PostsController < ApplicationController
+class Blog::PostsController < ApplicationController
   before_action :authenticate_employee!, only: [ :create, :update ]
   before_action :restrict_to_admin, only: [ :create, :update ]
   before_action :set_post, only: [ :show, :update, :tags ]
 
   def index
-    posts = Post.where(status: "published").includes(:employee, :category, :tags)
+    posts =  Blog::Post.where(status: "published").includes(:employee)
     render json: {
       posts: posts.map { |post| post_json(post) }
     }, status: :ok
@@ -17,7 +17,8 @@ class PostsController < ApplicationController
   def create
     post = current_employee.posts.new(post_params)
     if post.save
-      notify_users(post)
+      # notify_users(post)
+      NotificationService.notify_new_blog(post)
       render json: { message: "Post created successfully.", post: post_json(post) }, status: :created
     else
       render json: { message: post.errors.full_messages }, status: :unprocessable_entity
@@ -38,7 +39,7 @@ class PostsController < ApplicationController
 
   def related
     # Find posts with same category or shared tags, excluding the specified post
-    related_posts = Post.where(status: "published")
+    related_posts =  Blog::Post.where(status: "published")
                        .where(category: params[:category_id])
                        .or(Post.joins(:tags).where(blog_tags: { id: params[:tag_ids] }))
                        .where.not(id: params[:exclude_post_id])
@@ -53,7 +54,7 @@ class PostsController < ApplicationController
   private
 
   def set_post
-    @post = Post.includes(:employee, :category, :tags).find_by!(slug: params[:slug])
+    @post =  Blog::Post.includes(:employee, :category, :tags).find_by!(slug: params[:slug])
   rescue ActiveRecord::RecordNotFound
     render json: { message: "Post not found" }, status: :not_found
   end

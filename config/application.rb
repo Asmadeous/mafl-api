@@ -28,7 +28,7 @@ module MaflApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
-    g.orm :active_record, primary_key_type: :uuid
+    # g.orm :active_record, primary_key_type: :uuid
     # Add session middleware only for OAuth routes
     config.middleware.use ActionDispatch::Session::CookieStore, key: "_MaflApi"
     config.middleware.use ActionDispatch::Cookies

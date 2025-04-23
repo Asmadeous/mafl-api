@@ -13,7 +13,8 @@ class User < ApplicationRecord
 
   has_one_attached :avatar # Optional avatar
 
-  has_many :notifications, dependent: :destroy
+  has_many :notifications, as: :notifiable, dependent: :destroy
+  has_many :conversations
 
   def self.from_omniauth(auth)
     if auth.info.email.end_with?("@yourcompany.com")

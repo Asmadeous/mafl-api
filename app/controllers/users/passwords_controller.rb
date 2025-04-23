@@ -1,4 +1,5 @@
 class Users::PasswordsController < Devise::PasswordsController
+  skip_before_action :authenticate_user!
   respond_to :json
 
   # POST /users/password - Send reset instructions

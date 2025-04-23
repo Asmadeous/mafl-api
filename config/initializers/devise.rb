@@ -304,14 +304,7 @@ Devise.setup do |config|
   # Note: These might become the new default in future versions of Devise.
   config.jwt do |jwt|
     jwt.secret = Rails.application.credentials.secret_key_base
-    jwt.expiration_time = proc do |warden|
-      user = warden&.user
-      if user&.remember_me
-        30.days.to_i # Longer expiration for "remember me"
-      else
-        1.day.to_i  # Default expiration
-      end
-    end
+    jwt.expiration_time = 1.day.to_i # Static integer (86400 seconds)
     jwt.dispatch_requests = [
       [ "POST", %r{^/users/sign_in$} ],
       [ "POST", %r{^/users$} ],

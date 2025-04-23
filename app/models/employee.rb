@@ -16,6 +16,8 @@ class Employee < ApplicationRecord
   has_one_attached :avatar
   has_one_attached :full_picture
   has_many :posts, class_name: "Blog::Post", foreign_key: "employee_id"
+  has_many :notifications, as: :notifiable, dependent: :destroy
+  has_many :conversations
 
   def self.from_omniauth(auth)
     where(email: auth.info.email).first_or_create do |employee|

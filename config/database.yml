@@ -10,7 +10,7 @@ default: &default
 development:
   primary:
     <<: *default
-    database: mafl_api_development
+    database: mafl_api_development  
     migrations_paths: db/migrate
   cache:
     <<: *default
