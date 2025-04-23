@@ -76,8 +76,9 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts << [ "healthcheck.railway.app", "mafl-api-production.up.railway.app" ]
-  #
+  config.hosts <<  "healthcheck.railway.app"
+  config.hosts <<  "mafl-api-production.up.railway.app"
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
