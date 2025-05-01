@@ -38,4 +38,4 @@ RUN chmod +x bin/*
 EXPOSE ${PORT:-8080}
 
 # Start Rails with migrations
-CMD ["sh", "-c", "bin/rails db:prepare:all && bin/rails server -b 0.0.0.0 -p ${PORT:-8080}"]
+CMD ["sh", "-c", "bin/rails db:prepare && bin/rails server -b 0.0.0.0 -p ${PORT:-8080}"]
