@@ -75,7 +75,7 @@ Rails.application.routes.draw do
   end
 
   # Health check
-  # get "up", to: "rails/health#show", as: :rails_health_check
+  get "up", to: "health#show", as: :rails_health_check
   get "employees/admin_signed_in", to: "employees/profiles#admin_signed_in"
 
   # ActionCable with auth - mount last to ensure other routes take precedence
