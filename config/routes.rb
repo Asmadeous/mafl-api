@@ -24,6 +24,18 @@ Rails.application.routes.draw do
     password:     "employees/password"
   }
 
+  devise_for :clients, controllers: {
+    sessions: "clients/sessions",
+    registrations: "clients/registrations",
+    passwords: "clients/passwords",
+    omniauth_callbacks: "clients/omniauth_callbacks"
+  }, path: "", path_names: {
+    sign_in:  "clients/sign_in",
+    sign_out: "clients/sign_out",
+    registration: "clients",
+    password:     "clients/password"
+  }
+
   # Profiles
   get  "users/profile",      to: "users/profiles#show"
   put  "users/profile",      to: "users/profiles#update"
@@ -39,7 +51,7 @@ Rails.application.routes.draw do
   get "blog/tags",            to: "blog/tags#index"
 
   # Newsletter subscription
-  post "api/newsletter/subscribe", to: "newsletter#subscribe"
+  post "/newsletter/subscribe", to: "newsletter#subscribe"
 
   # contacts chat app
   get "/contacts", to: "contacts#index"

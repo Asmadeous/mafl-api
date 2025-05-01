@@ -302,6 +302,12 @@ Devise.setup do |config|
   # apps is `200 OK` and `302 Found` respectively, but new apps are generated with
   # these new defaults that match Hotwire/Turbo behavior.
   # Note: These might become the new default in future versions of Devise.
+  config.omniauth :google_oauth2, ENV["GOOGLE_CLIENT_ID"], ENV["GOOGLE_CLIENT_SECRET"], {
+    scope: "email, profile",
+    prompt: "select_account"
+    # Optional: Specify redirect_uri if needed, but Devise handles this automatically
+    # redirect_uri: 'http://localhost:3000/employees/auth/google_oauth2/callback'
+  }
   config.jwt do |jwt|
     jwt.secret = Rails.application.credentials.secret_key_base
     jwt.expiration_time = 1.day.to_i # Static integer (86400 seconds)
@@ -318,13 +324,6 @@ Devise.setup do |config|
   end
 
   config.navigational_formats = [] # API-only, no HTML redirects
-
-  config.omniauth :google_oauth2, ENV["GOOGLE_CLIENT_ID"], ENV["GOOGLE_CLIENT_SECRET"], {
-    scope: "email, profile",
-    prompt: "select_account"
-    # Optional: Specify redirect_uri if needed, but Devise handles this automatically
-    # redirect_uri: 'http://localhost:3000/employees/auth/google_oauth2/callback'
-  }
 
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.

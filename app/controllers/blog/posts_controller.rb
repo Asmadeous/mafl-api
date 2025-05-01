@@ -2,6 +2,7 @@ class Blog::PostsController < ApplicationController
   before_action :authenticate_employee!, only: [ :create, :update ]
   before_action :restrict_to_admin, only: [ :create, :update ]
   before_action :set_post, only: [ :show, :update, :tags ]
+  skip_before_action :authenticate_user!, only: [ :index, :show, :related ]
 
   def index
     posts =  Blog::Post.where(status: "published").includes(:employee)
