@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM ruby:3.4.1-slim
+FROM ruby:3.4.1-slim-bookworm
 
 # Set working directory
 WORKDIR /app
@@ -14,7 +14,6 @@ RUN apt-get update -qq && \
     nodejs \
     yarn \
     libvips \
-    sqlite3 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,7 +35,7 @@ COPY . .
 RUN chmod +x bin/*
 
 # Expose port
-EXPOSE 3000
+EXPOSE ${PORT:-8080}
 
-# Start Rails
-CMD ["bin/rails", "server", "-b", "0.0.0.0"]
+# Start Rails with migrations
+CMD ["sh", "-c", "bin/rails db:prepare:all && bin/rails server -b 0.0.0.0 -p ${PORT:-8080}"]

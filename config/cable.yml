@@ -1,6 +1,6 @@
 # config/cable.yml
 development:
-  adapter: async
+  adapter: 
   # url: redis://localhost:6379/1
   channel_prefix: mafl_development
 
@@ -8,6 +8,6 @@ test:
   adapter: test
 
 production:
-  adapter: redis
-  url: <%= ENV["REDIS_URL"] %>
-  channel_prefix: mafl_production
+  adapter: postgresql
+  url: <%= ENV["DATABASE_URL"] %>
+  channel_prefix: mafl_api_production
