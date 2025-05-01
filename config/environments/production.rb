@@ -35,8 +35,8 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Host authorization settings
-  config.hosts << "https://healthcheck.railway.app"
-  config.hosts << "https://mafl-api-production.up.railway.app"
+  config.hosts << "healthcheck.railway.app"
+  config.hosts << "mafl-api-production.up.railway.app"
   config.host_authorization = {
     exclude: ->(request) {
       is_health_check = request.path == "/up"
