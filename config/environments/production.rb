@@ -9,7 +9,7 @@ Rails.application.configure do
   config.active_storage.service = :local
   config.assume_ssl = true
   config.force_ssl = true
-  config.ssl_options = {  }
+  config.ssl_options = {}
   # redirect: { exclude: ->(request) { request.path == "/up" } }
   config.log_tags = [ :request_id ]
   config.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
@@ -35,9 +35,15 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Host authorization settings
-  config.hosts << "https://www.healthcheck.railway.app"
-  config.hosts << "https://www.mafl-api-production.up.railway.app"
-  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.hosts << "https://healthcheck.railway.app"
+  config.hosts << "https://mafl-api-production.up.railway.app"
+  config.host_authorization = {
+    exclude: ->(request) {
+      is_health_check = request.path == "/up"
+      Rails.logger.info "Host authorization check: path=#{request.path}, excluded=#{is_health_check}"
+      is_health_check
+    }
+  }
 
   # Debug logging for hosts
   Rails.logger.info "Allowed hosts on boot: #{Rails.application.config.hosts.inspect}"
