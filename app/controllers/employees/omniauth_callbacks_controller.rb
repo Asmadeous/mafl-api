@@ -1,6 +1,6 @@
 class Employees::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   # Skip CSRF verification for OAuth callback, as it's handled by omniauth-rails_csrf_protection
-  skip_before_action :verify_authenticity_token, only: :google_oauth2
+  skip_before_action :authenticate_user!
 
   def google_oauth2
     auth = request.env["omniauth.auth"]
