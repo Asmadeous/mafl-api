@@ -40,11 +40,11 @@ Rails.application.configure do
   config.host_authorization = {
     exclude: ->(request) {
       is_health_check = request.path == "/up"
-      Rails.logger.info "Host authorization check: path=#{request.path}, excluded=#{is_health_check}"
+      # Rails.logger.info "Host authorization check: path=#{request.path}, excluded=#{is_health_check}"
       is_health_check
     }
   }
 
   # Debug logging for hosts
-  Rails.logger.info "Allowed hosts on boot: #{Rails.application.config.hosts.inspect}"
+  # Rails.logger.info "Allowed hosts on boot: #{Rails.application.config.hosts.inspect}"
 end
