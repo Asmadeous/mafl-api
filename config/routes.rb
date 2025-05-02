@@ -28,7 +28,7 @@ Rails.application.routes.draw do
     sessions: "clients/sessions",
     registrations: "clients/registrations",
     passwords: "clients/passwords",
-    omniauth_callbacks: "clients/omniauth_callbacks"
+    # omniauth_callbacks: "clients/omniauth_callbacks"
   }, path: "", path_names: {
     sign_in:  "clients/sign_in",
     sign_out: "clients/sign_out",
