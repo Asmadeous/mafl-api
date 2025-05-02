@@ -32,6 +32,5 @@ module MaflApi
     # Add session middleware only for OAuth routes
     config.middleware.use ActionDispatch::Session::CookieStore, key: "_MaflApi"
     config.middleware.use ActionDispatch::Cookies
-    config.autoload_paths += %W[#{config.root}/lib]
   end
 end

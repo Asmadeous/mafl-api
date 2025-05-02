@@ -1,3 +1,4 @@
+
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -21,7 +22,6 @@ development:
   queue:
     <<: *default
     database: mafl_api_development
-
     schema_search_path: queue
     migrations_paths: db/queue_migrate
   cable:
