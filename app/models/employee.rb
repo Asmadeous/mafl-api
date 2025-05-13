@@ -2,10 +2,9 @@ class Employee < ApplicationRecord
   include Devise::JWT::RevocationStrategies::JTIMatcher
 
   devise :database_authenticatable, :registerable, :validatable,
-         :recoverable, :jwt_authenticatable, :omniauthable,
+         :recoverable, :jwt_authenticatable,
          :rememberable,
-         jwt_revocation_strategy: self,
-         omniauth_providers: [ :google_oauth2 ]
+         jwt_revocation_strategy: self
 
   validates :full_name, presence: true
   validates :email, presence: true, uniqueness: true

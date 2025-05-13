@@ -13,22 +13,22 @@ development:
     port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
     username: <%= ENV.fetch("POSTGRES_USER", "mafl_api_user") %>
     password: <%= ENV.fetch("POSTGRES_PASSWORD", "M@fl1Logistics") %>
-    migrations_paths: db/migrate
-  cache:
-    <<: *default
-    database: mafl_api_development
-    schema_search_path: cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *default
-    database: mafl_api_development
-    schema_search_path: queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *default
-    database: mafl_api_development
-    schema_search_path: cable
-    migrations_paths: db/cable_migrate
+    # migrations_paths: db/migrate
+  # cache:
+  #   <<: *default
+  #   database: mafl_api_development
+  #   # schema_search_path: cache
+  #   migrations_paths: db/cache_migrate
+  # queue:
+  #   <<: *default
+  #   database: mafl_api_development
+  #   # schema_search_path: queue
+  #   migrations_paths: db/queue_migrate
+  # cable:
+  #   <<: *default
+  #   database: mafl_api_development
+  #   # schema_search_path: cable
+  #   migrations_paths: db/cable_migrate
 
 test:
   primary:

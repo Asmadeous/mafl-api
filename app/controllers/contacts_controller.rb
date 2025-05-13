@@ -1,23 +1,37 @@
 class ContactsController < ApplicationController
-  before_action :authenticate_user_or_employee!
+  # before_action :authenticate_user!
 
   def index
-    if current_user.is_a?(Employee)
-      contacts = User.all.select(:id, :full_name)
-    else
-      contacts = Employee.all.select(:id, :full_name)
-    end
-
-    render json: contacts
-  rescue => e
-    Rails.logger.error("Error fetching contacts: #{e.message}")
-    render json: { error: "Failed to load contacts" }, status: 500
+    contacts = fetch_contacts
+    render json: contacts.map { |contact| { id: contact.id, name: contact_name(contact), email: contact.email } }
   end
 
   private
 
-  def authenticate_user_or_employee!
-    # Custom auth logic that checks for either user or employee
-    authenticate_user! || authenticate_employee!
+  def fetch_contacts
+    if current_user.is_a?(Employee) && current_user.role == "admin"
+      User.all + Client.all
+    else
+      Employee.all
+    end
+  end
+
+  def contact_name(contact)
+    case contact
+    when User, Employee
+      contact.full_name
+    when Client
+      contact.company_name
+    else
+      ""
+    end
+  end
+
+  def authenticate_user!
+    # Assuming Devise or similar authentication; adjust based on your setup
+    unless current_user
+      render json: { error: "Unauthorized" }, status: :unauthorized
+      nil
+    end
   end
 end

@@ -1,5 +1,5 @@
 class NotificationsController < ApplicationController
-  before_action :authenticate_user_or_employee!
+  # before_action :authenticate_user_or_employee!
 
   def index
     @notifications = current_user_or_employee.notifications.order(created_at: :desc)
@@ -42,17 +42,5 @@ class NotificationsController < ApplicationController
   def mark_all_read
     current_user_or_employee.notifications.update_all(read: true)
     render json: { success: true }
-  end
-
-  private
-
-  def current_user_or_employee
-    current_user || current_employee
-  end
-
-  def authenticate_user_or_employee!
-    unless current_user || current_employee
-      render json: { error: "You need to sign in before continuing" }, status: :unauthorized
-    end
   end
 end

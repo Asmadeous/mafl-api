@@ -1,83 +1,105 @@
 Rails.application.routes.draw do
-  # Devise
+  # Authentication (Devise)
   devise_for :users, controllers: {
-    sessions:           "users/sessions",
-    registrations:      "users/registrations",
-    omniauth_callbacks: "users/omniauth_callbacks",
-    passwords:          "users/passwords"
-  }, path: "", path_names: {
-    sign_in:  "users/sign_in",
-    sign_out: "users/sign_out",
-    registration: "users",
-    password:     "users/password"
+    sessions: "users/sessions",
+    registrations: "users/registrations",
+    passwords: "users/passwords",
+    omniauth_callbacks: "users/omniauth_callbacks"
   }
 
   devise_for :employees, controllers: {
-    sessions:           "employees/sessions",
-    registrations:      "employees/registrations",
-    omniauth_callbacks: "employees/omniauth_callbacks",
-    passwords:          "employees/passwords"
-  }, path: "", path_names: {
-    sign_in:  "employees/sign_in",
-    sign_out: "employees/sign_out",
-    registration: "employees",
-    password:     "employees/password"
+    sessions: "employees/sessions",
+    registrations: "employees/registrations",
+    passwords: "employees/passwords"
   }
 
   devise_for :clients, controllers: {
     sessions: "clients/sessions",
     registrations: "clients/registrations",
-    passwords: "clients/passwords",
-    # omniauth_callbacks: "clients/omniauth_callbacks"
-  }, path: "", path_names: {
-    sign_in:  "clients/sign_in",
-    sign_out: "clients/sign_out",
-    registration: "clients",
-    password:     "clients/password"
+    passwords: "clients/passwords"
   }
 
-  # Profiles
-  get  "users/profile",      to: "users/profiles#show"
-  put  "users/profile",      to: "users/profiles#update"
-  get  "employees/profile",  to: "employees/profiles#show"
-  put  "employees/profile",  to: "employees/profiles#update"
+  # User and Employee Profiles
+  scope module: :users do
+    get "users/profile", to: "profiles#show"
+    put "users/profile", to: "profiles#update"
+    get "users/dashboard", to: "dashboards#show"
+    get "users/settings", to: "settings#show"
+    put "users/settings", to: "settings#update"
+  end
 
-  # Blog posts
-  get  "blog/posts",          to: "blog/posts#index"
-  get  "blog/posts/:slug",    to: "blog/posts#show"
-  post "blog/posts",          to: "blog/posts#create"
-  put  "blog/posts/:slug",    to: "blog/posts#update"
-  get "blog/categories",      to: "blog/categories#index"
-  get "blog/tags",            to: "blog/tags#index"
+  scope module: :employees do
+    get "employees/profile", to: "profiles#show"
+    put "employees/profile", to: "profiles#update"
+    get "employees/admin_signed_in", to: "profiles#admin_signed_in"
+    get "employees/dashboard", to: "dashboards#show"
+    get "employees/settings", to: "settings#show"
+    put "employees/settings", to: "settings#update"
+  end
 
-  # Newsletter subscription
-  post "/newsletter/subscribe", to: "newsletter#subscribe"
+  scope module: :clients do
+    get "clients/dashboard", to: "dashboards#show"
+    get "clients/settings", to: "settings#show"
+    put "clients/settings", to: "settings#update"
+  end
 
-  # contacts chat app
-  get "/contacts", to: "contacts#index"
+  # Blog Routes
+  scope :blog, module: :blog do
+    resources :posts, only: [ :index, :show, :create, :update ], param: :slug
+    resources :categories, only: [ :index ]
+    resources :tags, only: [ :index ]
+  end
 
-  # Notifications, messages
+  # Newsletter Subscription
+  post "newsletter/subscribe", to: "newsletter#subscribe"
+
+  # Contacts Chat App
+  get "contacts", to: "contacts#index"
+
+  # Conversations and Messages
   resources :conversations, only: [ :index, :show, :create ] do
     resources :messages, only: [ :create ] do
+      put :read, on: :member
+    end
+  end
+
+  # Notifications
+  resources :notifications, only: [ :index ] do
+    put :read, on: :member
+    put :mark_all_read, on: :collection
+  end
+
+  # Admin Routes (Employees)
+  namespace :employees do
+    resources :job_listings, only: [ :index, :show, :create, :update, :destroy ]
+    resources :job_applications, only: [ :index, :show, :update ]
+    resources :appointments, only: [ :index, :show, :create, :update, :destroy ] do
       member do
-        put :read
+        patch :verify
+        patch :reschedule
       end
     end
+    resources :clients, only: [ :index, :create, :update ]
+    resources :users, only: [ :index, :create, :update ]
+    resources :staff, only: [ :index, :create, :update ]
+    get "reports", to: "reports#index"
+    get "export/clients", to: "exports#clients"
+    get "export/users", to: "exports#users"
+    get "export/appointments", to: "exports#appointments"
   end
 
-  resources :notifications, only: [ :index ] do
-    member do
-      put :read
-    end
-    collection do
-      put :mark_all_read
-    end
+  # Public Routes
+  resources :job_listings, only: [ :index, :show ] do
+    post "apply", to: "job_applications#create"
   end
+  resources :appointments, only: [ :index, :show, :create ]
 
-  # Health check
-  get "up", to: "rails/health#show", as: :rails_health_check
-  get "employees/admin_signed_in", to: "employees/profiles#admin_signed_in"
+  # File Upload Endpoint
+  post "uploads", to: "uploads#create"
 
-  # ActionCable with auth - mount last to ensure other routes take precedence
+  # Global Search Functionality
+  get "search", to: "search#index"
+
+  # ActionCable for Real-Time Features
   mount ActionCable.server => "/cable"
 end

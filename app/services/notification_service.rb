@@ -1,6 +1,6 @@
 # app/services/notification_service.rb
 class NotificationService
-  def self.create_and_broadcast(recipient, notifiable, title, message, type = 'info', link = nil)
+  def self.create_and_broadcast(recipient, notifiable, title, message, type = "info", link = nil)
     notification = Notification.create(
       notifiable: notifiable,
       title: title,

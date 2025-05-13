@@ -1,7 +1,6 @@
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::API
-  include ActionController::HttpAuthentication::Token::ControllerMethods
-
-  before_action :authenticate_user!
+  before_action :authenticate_user!, unless: :guest_conversation_action?
 
   attr_reader :current_user
 
@@ -13,8 +12,8 @@ class ApplicationController < ActionController::API
 
     begin
       decoded = decode_token(token)
-      user_id   = decoded[0]["sub"]
-      user_type = decoded[0]["scp"]&.capitalize # "User" or "Employee"
+      user_id = decoded[0]["sub"]
+      user_type = decoded[0]["scp"]&.capitalize # "User", "Employee", or "Client"
 
       @current_user =
         case user_type
@@ -22,11 +21,13 @@ class ApplicationController < ActionController::API
           User.find_by(id: user_id)
         when "Employee"
           Employee.find_by(id: user_id)
+        when "Client"
+          Client.find_by(id: user_id)
         else
           nil
         end
 
-       render_unauthorized unless @current_user
+      render_unauthorized unless @current_user
     rescue JWT::DecodeError, ActiveRecord::RecordNotFound => e
       Rails.logger.error("Authentication error: #{e.message}")
       render_unauthorized
@@ -52,6 +53,10 @@ class ApplicationController < ActionController::API
     render json: { error: "Unauthorized" }, status: :unauthorized
   end
 
+  def guest_conversation_action?
+    controller_name == "guest_conversations" && %w[create messages].include?(action_name)
+  end
+
   # Optional helpers
   def employee?
     current_user.is_a?(Employee)
@@ -59,5 +64,9 @@ class ApplicationController < ActionController::API
 
   def user?
     current_user.is_a?(User)
+  end
+
+  def client?
+    current_user.is_a?(Client)
   end
 end

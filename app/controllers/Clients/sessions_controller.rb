@@ -1,7 +1,7 @@
 module Clients
   class SessionsController < Devise::SessionsController
     respond_to :json
-
+    skip_before_action :authenticate_user!
     # POST /clients/sign_in
     def create
       self.resource = warden.authenticate!(auth_options)

@@ -1,6 +1,7 @@
 module Clients
   class PasswordsController < Devise::PasswordsController
     respond_to :json
+    skip_before_action :authenticate_user!
 
     # POST /clients/password
     def create

@@ -1,19 +1,23 @@
 class ConversationsController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_entity!
   before_action :set_conversation, only: [ :show ]
   before_action :authorize_conversation, only: [ :create ]
 
-  # Fetches all conversations the current user is part of
+  # Fetches all conversations the current entity is part of
   def index
     conversations = Conversation
-      .where("user_id = :id OR employee_id = :id", id: current_user.id)
-      .order(updated_at: :desc) # [[2]] Recent conversations first
+      .where(
+        "user_id = :id OR employee_id = :id OR client_id = :id",
+        id: current_entity.id
+      )
+      .order(updated_at: :desc) # Recent conversations first
 
-      render json: conversations.map { |c|
+    render json: conversations.map { |c|
       {
         id: c.id,
         user_id: c.user_id,
         employee_id: c.employee_id,
+        client_id: c.client_id,
         last_message_at: c.last_message_at&.iso8601,
         created_at: c.created_at.iso8601,
         updated_at: c.updated_at.iso8601
@@ -23,20 +27,31 @@ class ConversationsController < ApplicationController
 
   # Creates a conversation with proper authorization checks
   def create
-    # Determine user role and validate parameters
-    if current_user.employee?
-      user = User.find_by(id: conversation_params[:user_id])
-      return render_error("Invalid user ID") unless user
-      conversation = Conversation.new(
-        user_id: user.id,
-        employee_id: current_user.id
-      )
-    else
+    if current_entity.is_a?(Employee)
+      if conversation_params[:user_id].present?
+        user = User.find_by(id: conversation_params[:user_id])
+        return render_error("Invalid user ID") unless user
+        conversation = Conversation.new(
+          user_id: user.id,
+          employee_id: current_entity.id
+        )
+      elsif conversation_params[:client_id].present?
+        client = Client.find_by(id: conversation_params[:client_id])
+        return render_error("Invalid client ID") unless client
+        conversation = Conversation.new(
+          client_id: client.id,
+          employee_id: current_entity.id
+        )
+      else
+        return render_error("Must specify user_id or client_id")
+      end
+    else # User or Client
       employee = Employee.find_by(id: conversation_params[:employee_id])
       return render_error("Invalid employee ID") unless employee
       conversation = Conversation.new(
-        user_id: current_user.id,
-        employee_id: employee.id
+        employee_id: employee.id,
+        user_id: current_entity.is_a?(User) ? current_entity.id : nil,
+        client_id: current_entity.is_a?(Client) ? current_entity.id : nil
       )
     end
 
@@ -49,11 +64,13 @@ class ConversationsController < ApplicationController
 
   # Shows a conversation and marks notifications as read
   def show
-    unless @conversation.user_id == current_user.id || @conversation.employee_id == current_user.id
+    unless @conversation.user_id == current_entity.id ||
+           @conversation.employee_id == current_entity.id ||
+           @conversation.client_id == current_entity.id
       return render json: { error: "Unauthorized" }, status: :unauthorized
     end
 
-    # Mark notifications as read [[9]]
+    # Mark notifications as read
     notifications = Notification.where(
       notifiable_type: "Message",
       notifiable_id: @conversation.messages.pluck(:id),
@@ -61,8 +78,15 @@ class ConversationsController < ApplicationController
     )
     notifications.update_all(read: true)
 
-    # Broadcast updates to the user's stream [[6]]
-    stream_key = current_user.is_a?(Employee) ? "employee:#{current_user.id}" : "user:#{current_user.id}"
+    # Broadcast updates to the entity's stream
+    stream_key = case current_entity
+    when Employee
+                   "employee:#{current_entity.id}"
+    when User
+                   "user:#{current_entity.id}"
+    when Client
+                   "client:#{current_entity.id}"
+    end
     notifications.each do |n|
       ActionCable.server.broadcast(
         stream_key,
@@ -92,28 +116,48 @@ class ConversationsController < ApplicationController
 
   private
 
-  # Strong parameters to prevent mass assignment [[3]][[8]]
+  # Strong parameters to prevent mass assignment
   def conversation_params
-    params.permit(:user_id, :employee_id)
+    params.permit(:user_id, :employee_id, :client_id)
   end
 
-  # Authorization check for creating conversations [[4]][[7]]
+  # Authorization check for creating conversations
   def authorize_conversation
-    unless current_user.employee? || conversation_params[:user_id] == current_user.id
+    if current_entity.is_a?(Employee)
+      return if conversation_params[:user_id].present? || conversation_params[:client_id].present?
+      render_error("Employee must specify user_id or client_id")
+    elsif current_entity.is_a?(User)
+      return if conversation_params[:user_id] == current_entity.id
+      render_error("User can only create conversations for themselves")
+    elsif current_entity.is_a?(Client)
+      return if conversation_params[:client_id] == current_entity.id
+      render_error("Client can only create conversations for themselves")
+    else
       render_error("Unauthorized to create this conversation")
     end
   end
 
-  # Error helper [[9]]
+  # Error helper
   def render_error(message)
     render json: { error: message }, status: :unprocessable_entity
   end
 
-  # Fetches the conversation or returns an error [[2]]
+  # Fetches the conversation or returns an error
   def set_conversation
     @conversation = Conversation.find_by(id: params[:id])
     return if @conversation.present?
 
     render json: { error: "Conversation not found" }, status: :not_found
   end
+
+  # Authenticate user, employee, or client
+  def authenticate_entity!
+    self.current_entity = current_user || current_employee || current_client
+    unless current_entity
+      render json: { error: "Unauthorized" }, status: :unauthorized
+    end
+  end
+
+  # Helper to access current authenticated entity
+  attr_accessor :current_entity
 end

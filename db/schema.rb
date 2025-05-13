@@ -10,7 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_30_185435) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_09_233333) do
+  create_schema "cable_schema"
+  create_schema "cache"
+  create_schema "queue"
+  create_schema "queue_schema"
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "uuid-ossp"
@@ -41,6 +46,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_30_185435) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "appointments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "employee_id", null: false
+    t.uuid "client_id"
+    t.uuid "user_id"
+    t.datetime "scheduled_at", null: false
+    t.string "purpose", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "status", default: "pending", null: false
+    t.index ["client_id"], name: "index_appointments_on_client_id"
+    t.index ["employee_id"], name: "index_appointments_on_employee_id"
+    t.index ["user_id"], name: "index_appointments_on_user_id"
   end
 
   create_table "blog_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -109,6 +128,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_30_185435) do
     t.datetime "last_message_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "client_id"
+    t.uuid "guest_id"
+    t.index ["client_id", "employee_id"], name: "index_conversations_on_client_id_and_employee_id", unique: true, where: "(client_id IS NOT NULL)"
+    t.index ["guest_id", "employee_id"], name: "index_conversations_on_guest_id_and_employee_id", unique: true, where: "(guest_id IS NOT NULL)"
     t.index ["user_id", "employee_id"], name: "index_conversations_on_user_id_and_employee_id", unique: true, where: "(user_id IS NOT NULL)"
   end
 
@@ -128,6 +151,39 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_30_185435) do
     t.index ["id"], name: "index_employees_on_id", unique: true
     t.index ["jti"], name: "index_employees_on_jti", unique: true
     t.index ["reset_password_token"], name: "index_employees_on_reset_password_token", unique: true
+  end
+
+  create_table "guests", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", default: "Guest"
+    t.string "email"
+    t.string "token", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_guests_on_token", unique: true
+  end
+
+  create_table "job_applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "job_listing_id", null: false
+    t.string "applicant_type", null: false
+    t.uuid "applicant_id", null: false
+    t.uuid "reviewer_id"
+    t.text "content", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["applicant_type", "applicant_id"], name: "index_job_applications_on_applicant"
+    t.index ["job_listing_id"], name: "index_job_applications_on_job_listing_id"
+    t.index ["reviewer_id"], name: "index_job_applications_on_reviewer_id"
+  end
+
+  create_table "job_listings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "employee_id", null: false
+    t.string "title", null: false
+    t.text "description", null: false
+    t.string "status", default: "draft", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id"], name: "index_job_listings_on_employee_id"
   end
 
   create_table "messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -177,12 +233,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_30_185435) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "appointments", "clients"
+  add_foreign_key "appointments", "employees"
+  add_foreign_key "appointments", "users"
   add_foreign_key "blog_posts", "blog_categories", column: "category_id"
   add_foreign_key "blog_posts", "employees"
   add_foreign_key "blog_posts_tags", "blog_posts", column: "post_id"
   add_foreign_key "blog_posts_tags", "blog_tags", column: "tag_id"
   add_foreign_key "clients", "employees"
+  add_foreign_key "conversations", "clients"
   add_foreign_key "conversations", "employees"
+  add_foreign_key "conversations", "guests"
   add_foreign_key "conversations", "users"
+  add_foreign_key "job_applications", "employees", column: "reviewer_id"
+  add_foreign_key "job_applications", "job_listings"
+  add_foreign_key "job_listings", "employees"
   add_foreign_key "messages", "conversations"
 end

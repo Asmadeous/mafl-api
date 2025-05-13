@@ -55,7 +55,7 @@ employee = Employee.new(
   full_name: "Test Employee",
   email: "employee@example.com",
   phone_number: nil,
-  role: "staff",
+  role: "admin",
   password: "password123",
   password_confirmation: "password123",
   jti: EMPLOYEE_ID,
@@ -154,7 +154,7 @@ puts "💬 Creating conversation and messages..."
 conversation = Conversation.create!(
   user_id: USER_ID,
   employee_id: EMPLOYEE_ID,
-  session_id: SecureRandom.hex(16),
+  # conversation_id: SecureRandom.hex(16),
   last_message_at: Time.current
 )
 

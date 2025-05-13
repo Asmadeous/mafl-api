@@ -9,12 +9,18 @@ class Message < ApplicationRecord
   private
 
   def create_and_broadcast_notifications
-    return unless conversation.user_id && conversation.employee_id
-    return unless receiver_type.in?([ "User", "Employee" ]) && sender_type.in?([ "User", "Employee" ])
+    # Ensure conversation has valid participants
+    unless conversation.user_id || conversation.employee_id || conversation.client_id || conversation.guest_id
+      Rails.logger.warn("No valid participants for notification: conversation_id=#{conversation_id}")
+      return
+    end
 
-    user = conversation.user
-    employee = conversation.employee
-    return unless user && employee
+    # Ensure sender and receiver types are valid
+    valid_types = %w[User Employee Client Guest]
+    unless sender_type.in?(valid_types) && receiver_type.in?(valid_types)
+      Rails.logger.warn("Invalid sender/receiver type: sender_type=#{sender_type}, receiver_type=#{receiver_type}")
+      return
+    end
 
     # Receiver notification
     receiver_notification = Notification.create!(
@@ -41,7 +47,16 @@ class Message < ApplicationRecord
     )
 
     # Broadcast to receiver
-    receiver_stream_key = receiver_type == "User" ? "notifications:#{receiver_id}" : "notifications:employee:#{receiver_id}"
+    receiver_stream_key = case receiver_type
+    when "User"
+                           "notifications:user:#{receiver_id}"
+    when "Employee"
+                           "notifications:employee:#{receiver_id}"
+    when "Client"
+                           "notifications:client:#{receiver_id}"
+    when "Guest"
+                           "notifications:guest:#{receiver.token}"
+    end
     ActionCable.server.broadcast(
       receiver_stream_key,
       {
@@ -57,7 +72,16 @@ class Message < ApplicationRecord
     )
 
     # Broadcast to sender
-    sender_stream_key = sender_type == "User" ? "notifications:#{sender_id}" : "notifications:employee:#{sender_id}"
+    sender_stream_key = case sender_type
+    when "User"
+                         "notifications:user:#{sender_id}"
+    when "Employee"
+                         "notifications:employee:#{sender_id}"
+    when "Client"
+                         "notifications:client:#{sender_id}"
+    when "Guest"
+                         "notifications:guest:#{sender.token}"
+    end
     ActionCable.server.broadcast(
       sender_stream_key,
       {
@@ -71,5 +95,7 @@ class Message < ApplicationRecord
         conversation_id: conversation_id
       }
     )
+  rescue StandardError => e
+    Rails.logger.error("Failed to create/broadcast notifications: #{e.message}")
   end
 end
