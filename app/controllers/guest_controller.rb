@@ -1,5 +1,5 @@
 # app/controllers/guest_conversations_controller.rb
-class GuestConversationsController < ApplicationController
+class GuestController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :create, :messages ]
 
   # POST /guest/conversations
