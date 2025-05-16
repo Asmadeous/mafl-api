@@ -1,6 +1,8 @@
 class Blog::TagsController < ApplicationController
+  skip_before_action :authenticate_user!, only: [:index]
+
   def index
     tags = Blog::Tag.all
-    render json: tags.as_json(only: [ :id, :name, :slug ])
+    render json: ActiveModelSerializers::SerializableResource.new(tags, each_serializer: Blog::TagSerializer), status: :ok
   end
 end

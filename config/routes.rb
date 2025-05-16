@@ -103,3 +103,4 @@ Rails.application.routes.draw do
   # ActionCable for Real-Time Features
   mount ActionCable.server => "/cable"
 end
+
