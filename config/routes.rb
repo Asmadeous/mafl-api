@@ -63,6 +63,11 @@ Rails.application.routes.draw do
     end
   end
 
+  post "/guest/conversations", to: "guests#create"
+  post "/guest/conversations/:id/messages", to: "guests#messages"
+
+
+
   # Notifications
   resources :notifications, only: [ :index ] do
     put :read, on: :member
@@ -103,4 +108,3 @@ Rails.application.routes.draw do
   # ActionCable for Real-Time Features
   mount ActionCable.server => "/cable"
 end
-
