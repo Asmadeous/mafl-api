@@ -3,5 +3,5 @@ class AppointmentSerializer < ActiveModel::Serializer
   belongs_to :employee, serializer: EmployeeSerializer
   belongs_to :client, serializer: ClientSerializer, if: -> { object.client.present? }
   belongs_to :user, serializer: UserSerializer, if: -> { object.user.present? }
-  belongs_to :guest, serializer: GuestSerializer, if: -> { object.guest.present? }
+  # belongs_to :guest, serializer: GuestSerializer, if: -> { object.guest.present? }
 end
