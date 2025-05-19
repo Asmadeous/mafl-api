@@ -39,10 +39,16 @@ Rails.application.configure do
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
 
-  # Set allowed hosts
-  # config.hosts << "mafl-api-production.up.railway.app"
-  # config.hosts << "mafl-api-production.up.railway.app"
-  config.hosts << ENV["RAILWAY_DOMAIN"]
+  # Set allowed hosts - using clear and += to fully reset the hosts list
+  config.hosts.clear
+  config.hosts += [
+    "mafl-api-production.up.railway.app",
+    "mafl-api-production.up.railway.app:8080",
+    "www.mafllogistics.com",
+    "mafllogistics.com"
+    # Allow all hosts in production for Railway - use this if still having issues
+    # nil # This allows all hosts, use with caution
+  ]
 
   # Action Cable config
   config.action_cable.mount_path = "/cable"
@@ -73,7 +79,7 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # Default host for route helpers
-  Rails.application.routes.default_url_options[:host] = "mafl-api-production.up.railway.app"
+  # Rails.application.routes.default_url_options[:host] = "mafl-api-production.up.railway.app"
 
   # Enable CORS for specific domains
   config.middleware.insert_before 0, Rack::Cors do
