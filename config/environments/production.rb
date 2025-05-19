@@ -38,11 +38,21 @@ Rails.application.configure do
   }
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
+
+  # Set allowed hosts
+  config.hosts << "mafl-api-production.up.railway.app"
   config.hosts << "mafl-api-production.up.railway.app:8080"
+
   # Action Cable config
   config.action_cable.mount_path = "/cable"
   config.action_cable.url = "wss://mafl-api-production.up.railway.app/cable"
-  config.action_cable.allowed_request_origins = [ "https://mafl-api-production.up.railway.app" ]
+  config.action_cable.allowed_request_origins = [
+    "https://mafl-api-production.up.railway.app",
+    "https://www.mafllogistics.com",
+    "http://www.mafllogistics.com",
+    "https://mafllogistics.com",
+    "http://mafllogistics.com"
+  ]
 
   # Force SSL for all access.
   config.force_ssl = true
@@ -63,4 +73,23 @@ Rails.application.configure do
 
   # Default host for route helpers
   Rails.application.routes.default_url_options[:host] = "mafl-api-production.up.railway.app"
+
+  # Enable CORS for specific domains
+  config.middleware.insert_before 0, Rack::Cors do
+    allow do
+      origins "https://www.mafllogistics.com", "http://www.mafllogistics.com",
+              "https://mafllogistics.com", "http://mafllogistics.com"
+      resource "*",
+        headers: :any,
+        methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+        credentials: true,
+        expose: [ "access-token", "expiry", "token-type", "uid", "client" ]
+    end
+  end
+
+  # Set cookies to be shared across domains if needed
+  config.action_dispatch.cookies_same_site_protection = :none
+
+  # Make sure session cookies are secure
+  config.session_store :cookie_store, key: "_mafl_session", secure: true, same_site: :none
 end
