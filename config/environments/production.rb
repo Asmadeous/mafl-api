@@ -1,50 +1,66 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
-  # Existing settings...
-  config.enable_reloading = false
+  # Code is not reloaded between requests.
+  config.cache_classes = true
+
+  # Eager load code on boot to improve performance.
   config.eager_load = true
+
+  # Do not show full error reports.
   config.consider_all_requests_local = false
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+
+  # Enable caching with memory store.
+  config.action_controller.perform_caching = true
+  config.cache_store = :memory_store
+
+  # Require master key for encrypted credentials.
+  config.require_master_key = true
+
+  # Disable public file server (API apps typically don't serve static assets).
+  config.public_file_server.enabled = false
+
+  # Active Storage configuration (adjust if using a different storage like Amazon S3).
   config.active_storage.service = :local
-  config.assume_ssl = true
+
+  # Use a real queuing backend for Active Job (adjust as needed).
+  # config.active_job.queue_adapter = :sidekiq
+
+  # Mailer configuration using Resend
+  config.action_mailer.perform_caching = false
+  config.action_mailer.delivery_method = :resend
+  config.action_mailer.resend_settings = {
+    api_key: Rails.application.credentials.resend_api_key
+  }
+  config.action_mailer.default_url_options = {
+    host: "mafl-api-production.up.railway.app",
+    protocol: "https"
+  }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+
+  # Action Cable config
+  config.action_cable.mount_path = "/cable"
+  config.action_cable.url = "wss://mafl-api-production.up.railway.app/cable"
+  config.action_cable.allowed_request_origins = [ "https://mafl-api-production.up.railway.app" ]
+
+  # Force SSL for all access.
   config.force_ssl = true
-  config.ssl_options = {}
-  # redirect: { exclude: ->(request) { request.path == "/up" } }
+
+  # Use default logging formatter and tagged logging.
+  config.log_level = :info
   config.log_tags = [ :request_id ]
-  config.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
-  config.silence_healthcheck_path = "/up"
-  config.active_support.report_deprecations = false
-  config.cache_store = :solid_cache_store
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
-  config.action_mailer.raise_delivery_errors = false
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: "smtp.gmail.com",
-    port: 587,
-    domain: "example.com",
-    user_name: ENV["GMAIL_USERNAME"],
-    password: ENV["GMAIL_PASSWORD"],
-    authentication: "plain",
-    enable_starttls_auto: true
-  }
-  config.i18n.fallbacks = true
+  config.log_formatter = ::Logger::Formatter.new
+
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    logger = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger = ActiveSupport::TaggedLogging.new(logger)
+  end
+
+  # Do not dump the schema after migrations.
   config.active_record.dump_schema_after_migration = false
-  config.active_record.attributes_for_inspect = [ :id ]
 
-  # Host authorization settings
-  config.hosts << "healthcheck.railway.app"
-  config.hosts << "mafl-api-production.up.railway.app"
-  config.host_authorization = {
-    exclude: ->(request) {
-      is_health_check = request.path == "/up"
-      # Rails.logger.info "Host authorization check: path=#{request.path}, excluded=#{is_health_check}"
-      is_health_check
-    }
-  }
-
-  # Debug logging for hosts
-  # Rails.logger.info "Allowed hosts on boot: #{Rails.application.config.hosts.inspect}"
+  # Default host for route helpers
+  Rails.application.routes.default_url_options[:host] = "mafl-api-production.up.railway.app"
 end

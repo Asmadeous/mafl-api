@@ -8,7 +8,7 @@ class ResendDeliveryMethod
 
   def deliver!(mail)
     Resend::Emails.send({
-      from: "ndegwaian001@gmail.com",
+      from: "info@mafllogistics.com",
       to: mail.to,
       subject: mail.subject,
       html: mail.body.encoded
