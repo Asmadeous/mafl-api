@@ -3,6 +3,6 @@ class Blog::CategoriesController < ApplicationController
 
   def index
   categories = Blog::Category.all
-  render json: categories
+   render json: Blog::CategorySerializer.new(categories)
   end
 end
