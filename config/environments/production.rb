@@ -42,7 +42,7 @@ Rails.application.configure do
   # Set allowed hosts
   # config.hosts << "mafl-api-production.up.railway.app"
   # config.hosts << "mafl-api-production.up.railway.app"
-  config.hosts << "localhost"
+  config.hosts << ENV["RAILWAY_DOMAIN"]
 
   # Action Cable config
   config.action_cable.mount_path = "/cable"
