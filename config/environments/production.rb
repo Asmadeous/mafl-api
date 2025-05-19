@@ -40,8 +40,8 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   # Set allowed hosts
-  config.hosts << "mafl-api-production.up.railway.app"
-  config.hosts << "mafl-api-production.up.railway.app"
+  # config.hosts << "mafl-api-production.up.railway.app"
+  # config.hosts << "mafl-api-production.up.railway.app"
   config.hosts << "localhost"
 
   # Action Cable config
