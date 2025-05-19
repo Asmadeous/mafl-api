@@ -11,10 +11,10 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.0].define(version: 2025_05_09_233333) do
-  create_schema "cable_schema"
-  create_schema "cache"
-  create_schema "queue"
-  create_schema "queue_schema"
+  # create_schema "cable_schema"
+  # create_schema "cache"
+  # create_schema "queue"
+  # create_schema "queue_schema"
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"

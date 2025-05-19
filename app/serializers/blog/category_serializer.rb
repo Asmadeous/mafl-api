@@ -1,4 +1,4 @@
 class Blog::CategorySerializer
   include JSONAPI::Serializer
-  attributes 
+   attributes :id, :name, :slug, :description
 end

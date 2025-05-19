@@ -14,6 +14,13 @@ class Blog::Post < ApplicationRecord
 
   after_create_commit :notify_users, if: :published?
 
+  def author_name
+    employee&.full_name || "Unknown Author"
+  end
+  def author_avatar_url
+   employee&.avatar&.attached?
+  end
+
   private
 
   def published?
