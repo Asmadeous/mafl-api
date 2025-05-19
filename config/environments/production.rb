@@ -38,7 +38,7 @@ Rails.application.configure do
   }
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  config.hosts << "mafl-api-production.up.railway.app"
+  config.hosts << "mafl-api-production.up.railway.app:8080"
   # Action Cable config
   config.action_cable.mount_path = "/cable"
   config.action_cable.url = "wss://mafl-api-production.up.railway.app/cable"
