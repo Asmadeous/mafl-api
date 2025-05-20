@@ -41,13 +41,7 @@ Rails.application.configure do
 
   # Set allowed hosts - using clear and += to fully reset the hosts list
   config.hosts.clear
-  config.hosts += [
-    "mafl-api-production.up.railway.app",
-    "www.mafllogistics.com",
-    "mafllogistics.com"
-    # Allow all hosts in production for Railway - use this if still having issues
-    # nil # This allows all hosts, use with caution
-  ]
+  config.hosts << /.*\.up\.railway\.app$/ # Allow all Railway subdomains
 
   # Action Cable config
   config.action_cable.mount_path = "/cable"
