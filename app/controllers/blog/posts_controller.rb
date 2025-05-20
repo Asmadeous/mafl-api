@@ -5,52 +5,34 @@ class Blog::PostsController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :index, :show, :related ]
 
   def index
-    page = [ params[:page].to_i, 1 ].max
-    per_page = params[:per_page].to_i
-    per_page = 10 if per_page <= 0
-    per_page = [ per_page, 100 ].min
+    posts = Blog::Post
+              .where(status: "published")
+              .includes(:employee, :category, :tags)
+              .paginate(page: current_page, per_page: per_page)
 
-    posts = Blog::Post.where(status: "published")
-                      .includes(:employee, :category, :tags)
-                      .paginate(page: page, per_page: per_page)
-
-    options = { include: [ :employee, :category, :tags ] }
-    serialized_posts = Blog::PostSerializer.new(posts, options).serializable_hash
-
-    render json: {
-      data: serialized_posts[:data],
-      meta: {
-        pagination: {
-          current_page: posts.current_page,
-          total_pages: posts.total_pages,
-          total_count: posts.total_entries,
-          per_page: per_page
-        }
-      }
-    }, status: :ok
+    render_serialized_posts(posts)
   end
 
   def show
-    options = { include: [ :employee, :category, :tags ] }
-    render json: Blog::PostSerializer.new(@post, options).serializable_hash, status: :ok
+    render_serialized_post(@post)
   end
 
   def create
     post = current_employee.posts.new(post_params)
+
     if post.save
       NotificationService.notify_new_blog(post)
-      render json: Blog::PostSerializer.new(post).serializable_hash, status: :created
+      render_serialized_post(post, status: :created)
     else
-      render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
-
+      render_error(post)
     end
   end
 
   def update
     if @post.update(post_params)
-      render json: Blog::PostSerializer.new(@post).serializable_hash, status: :ok
+      render_serialized_post(@post)
     else
-      render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
+      render_error(@post)
     end
   end
 
@@ -59,32 +41,18 @@ class Blog::PostsController < ApplicationController
   end
 
   def related
-    page = [ params[:page].to_i, 1 ].max
-    per_page = (params[:per_page] || 5).to_i
+    related_posts = Blog::Post
+                      .where(status: "published")
+                      .where(category_id: params[:category_id])
+                      .or(
+                        Blog::Post.joins(:tags).where(blog_tags: { id: params[:tag_ids] })
+                      )
+                      .where.not(id: params[:exclude_post_id])
+                      .includes(:employee, :category, :tags)
+                      .distinct
+                      .paginate(page: current_page, per_page: per_page)
 
-    related_posts = Blog::Post.where(status: "published")
-                              .where(category: params[:category_id])
-                              .or(Blog::Post.joins(:tags).where(blog_tags: { id: params[:tag_ids] }))
-                              .where.not(id: params[:exclude_post_id])
-                              .includes(:employee, :category, :tags)
-                              .distinct
-                              .paginate(page: page, per_page: per_page)
-
-    options = { include: [ :employee, :category, :tags ] }
-    serialized_posts = Blog::PostSerializer.new(related_posts, options).serializable_hash
-
-    render json: {
-      data: serialized_posts[:data],
-      included: serialized_posts[:included],
-      meta: {
-        pagination: {
-          current_page: related_posts.current_page,
-          total_pages: related_posts.total_pages,
-          total_count: related_posts.total_entries,
-          per_page: per_page
-        }
-      }
-    }, status: :ok
+    render_serialized_posts(related_posts)
   end
 
   private
@@ -103,8 +71,16 @@ class Blog::PostsController < ApplicationController
 
   def post_params
     params.require(:post).permit(
-      :title, :slug, :content, :excerpt, :featured_image, :category_id, :status,
-      :is_featured, :published_at, tag_ids: []
+      :title,
+      :slug,
+      :content,
+      :excerpt,
+      :featured_image,
+      :category_id,
+      :status,
+      :is_featured,
+      :published_at,
+      tag_ids: []
     )
   end
 
@@ -112,5 +88,47 @@ class Blog::PostsController < ApplicationController
     unless current_employee&.admin?
       render json: { message: "Only admins can manage blog posts." }, status: :forbidden
     end
+  end
+
+  def current_page
+    [ params[:page].to_i, 1 ].max
+  end
+
+  def per_page
+    limit = params[:per_page].to_i
+    limit = 10 if limit <= 0
+    [ limit, 100 ].min
+  end
+
+  def render_serialized_posts(posts)
+    options = { include: [ :employee, :category, :tags ] }
+    serialized = Blog::PostSerializer.new(posts, options).serializable_hash
+
+    render json: {
+      data: serialized[:data],
+      included: serialized[:included],
+      meta: {
+        pagination: {
+          current_page: posts.current_page,
+          total_pages: posts.total_pages,
+          total_count: posts.total_entries,
+          per_page: posts.per_page
+        }
+      }
+    }, status: :ok
+  end
+
+  def render_serialized_post(post, status: :ok)
+    options = { include: [ :employee, :category, :tags ] }
+    serialized = Blog::PostSerializer.new(post, options).serializable_hash
+
+    render json: {
+      data: serialized[:data],
+      included: serialized[:included]
+    }, status: status
+  end
+
+  def render_error(resource)
+    render json: { errors: resource.errors.full_messages }, status: :unprocessable_entity
   end
 end
