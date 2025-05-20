@@ -1,84 +1,95 @@
-# require "active_support/core_ext/integer/time"
+require "active_support/core_ext/integer/time"
 
-# Rails.application.configure do
-#   # Settings specified here will take precedence over those in config/application.rb.
+Rails.application.configure do
+  # Code is not reloaded between requests.
+  config.cache_classes = true
 
-#   # Make code changes take effect immediately without server restart.
-#   config.enable_reloading = true
+  # Eager load code on boot to improve performance.
+  config.eager_load = true
 
-#   # Do not eager load code on boot.
-#   config.eager_load = false
+  # Do not show full error reports.
+  config.consider_all_requests_local = false
 
-#   # Show full error reports.
-#   config.consider_all_requests_local = true
+  # Enable caching with memory store.
+  config.action_controller.perform_caching = true
+  config.cache_store = :memory_store
 
-#   # Enable server timing.
-#   config.server_timing = true
+  # Require master key for encrypted credentials.
+  config.require_master_key = true
 
-#   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
-#   # Run rails dev:cache to toggle Action Controller caching.
-#   if Rails.root.join("tmp/caching-dev.txt").exist?
-#     config.public_file_server.headers = { "cache-control" => "public, max-age=#{2.days.to_i}" }
-#   else
-#     config.action_controller.perform_caching = false
-#   end
+  # Disable public file server (API apps typically don't serve static assets).
+  config.public_file_server.enabled = false
 
-#   # Change to :null_store to avoid any caching.
-#   config.cache_store = :memory_store
+  # Active Storage configuration (adjust if using a different storage like Amazon S3).
+  config.active_storage.service = :local
 
-#   # Store uploaded files on the local file system (see config/storage.yml for options).
-#   config.active_storage.service = :local
+  # Use a real queuing backend for Active Job (adjust as needed).
+  # config.active_job.queue_adapter = :sidekiq
 
-#   # Don't care if the mailer can't send.
-#   config.action_mailer.raise_delivery_errors = false
+  # Mailer configuration using Resend
+  config.action_mailer.perform_caching = false
+  config.action_mailer.delivery_method = :resend
+  config.action_mailer.resend_settings = {
+    api_key: Rails.application.credentials.resend_api_key
+  }
+  config.action_mailer.default_url_options = {
+    host: "mafl-api-production.up.railway.app",
+    protocol: "https"
+  }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
 
-#   # Make template changes take effect immediately.
-#   config.action_mailer.perform_caching = false
+  # Set allowed hosts - using clear and += to fully reset the hosts list
+  config.hosts.clear
+  config.hosts << /.*\.up\.railway\.app$/ # Allow all Railway subdomains
 
-#   # Set localhost to be used by links generated in mailer templates.
-#   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  # Action Cable config
+  config.action_cable.mount_path = "/cable"
+  config.action_cable.url = "wss://mafl-api-production.up.railway.app/cable"
+  config.action_cable.allowed_request_origins = [
+    "https://mafl-api-production.up.railway.app",
+    "https://www.mafllogistics.com",
+    "http://www.mafllogistics.com",
+    "https://mafllogistics.com",
+    "http://mafllogistics.com"
+  ]
 
-#   # Print deprecation notices to the Rails logger.
-#   config.active_support.deprecation = :log
+  # Force SSL for all access.
+  config.force_ssl = true
 
-#   # Raise an error on page load if there are pending migrations.
-#   config.active_record.migration_error = :page_load
+  # Use default logging formatter and tagged logging.
+  config.log_level = :info
+  config.log_tags = [ :request_id ]
+  config.log_formatter = ::Logger::Formatter.new
 
-#   # Highlight code that triggered database queries in logs.
-#   config.active_record.verbose_query_logs = true
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    logger = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger = ActiveSupport::TaggedLogging.new(logger)
+  end
 
-#   # Append comments with runtime information tags to SQL queries in logs.
-#   config.active_record.query_log_tags_enabled = true
+  # Do not dump the schema after migrations.
+  config.active_record.dump_schema_after_migration = false
 
-#   # Highlight code that enqueued background job in logs.
-#   config.active_job.verbose_enqueue_logs = true
+  # Default host for route helpers
+  Rails.application.routes.default_url_options[:host] = "mafl-api-production.up.railway.app"
 
-#   # Raises error for missing translations.
-#   # config.i18n.raise_on_missing_translations = true
+  # Enable CORS for specific domains
+  config.middleware.insert_before 0, Rack::Cors do
+    allow do
+      origins "https://www.mafllogistics.com", "http://www.mafllogistics.com",
+              "https://mafllogistics.com", "http://mafllogistics.com"
+      resource "*",
+        headers: :any,
+        methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+        credentials: true,
+        expose: [ "access-token", "expiry", "token-type", "uid", "client" ]
+    end
+  end
 
-#   # Annotate rendered view with file names.
-#   config.action_view.annotate_rendered_view_with_filenames = true
+  # Set cookies to be shared across domains if needed
+  config.action_dispatch.cookies_same_site_protection = :none
 
-#   # Uncomment if you wish to allow Action Cable access from any origin.
-#   config.action_cable.disable_request_forgery_protection = true
-
-#   # Raise error when a before_action's only/except options reference missing actions.
-#   config.action_controller.raise_on_missing_callback_actions = true
-
-#   # config.hosts << "healthcheck.railway.app"
-#   # Apply autocorrection by RuboCop to files generated by `bin/rails generate`.
-#   # config.generators.apply_rubocop_autocorrect_after_generate!
-#   config.action_mailer.delivery_method = :resend
-#   config.action_mailer.resend_settings = {
-#     api_key: Rails.application.credentials.resend_api_key
-# }
-# config.action_mailer.default_url_options = { host: "localhost:3000" }
-# config.action_mailer.perform_deliveries = true
-# config.action_mailer.raise_delivery_errors = true
-# config.action_cable.mount_path = "/cable"
-#   config.action_cable.url = "http://localhost:3000/cable"
-# # config.action_cable.allowed_request_origins = [ "http://localhost:3001" ]
-# # config.action_cable.url = 'ws://https://mafl-api-production.up.railway.app/cable'
-# # config.action_cable.allowed_request_origins = ['https://']
-# Rails.application.routes.default_url_options[:host] = "localhost:3000"
-# end
+  # Make sure session cookies are secure
+  config.session_store :cookie_store, key: "_mafl_session", secure: true, same_site: :none
+end
