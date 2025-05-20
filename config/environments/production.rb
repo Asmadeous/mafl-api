@@ -43,7 +43,6 @@ Rails.application.configure do
   config.hosts.clear
   config.hosts += [
     "mafl-api-production.up.railway.app",
-    "mafl-api-production.up.railway.app:8080",
     "www.mafllogistics.com",
     "mafllogistics.com"
     # Allow all hosts in production for Railway - use this if still having issues
