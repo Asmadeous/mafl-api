@@ -44,11 +44,6 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    active_model_serializers (0.10.15)
-      actionpack (>= 4.1)
-      activemodel (>= 4.1)
-      case_transform (>= 0.2)
-      jsonapi-renderer (>= 0.1.1.beta1, < 0.3)
     activejob (8.0.2)
       activesupport (= 8.0.2)
       globalid (>= 0.3.6)
@@ -88,14 +83,12 @@ GEM
     brakeman (7.0.2)
       racc
     builder (3.3.0)
-    case_transform (0.2)
-      activesupport
     concurrent-ruby (1.3.5)
     connection_pool (2.5.0)
     crass (1.0.6)
     csv (3.3.3)
     date (3.4.1)
-    debug (1.10.0)
+    debug (1.11.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
     devise (4.9.4)
@@ -120,6 +113,7 @@ GEM
       logger
       zeitwerk (~> 2.6)
     ed25519 (1.3.0)
+    erb (5.0.1)
     erubi (1.13.1)
     et-orbi (1.2.11)
       tzinfo
@@ -147,7 +141,6 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.10.2)
-    jsonapi-renderer (0.2.2)
     jsonapi-serializer (2.2.0)
       activesupport (>= 4.2)
     jwt (2.10.1)
@@ -242,7 +235,7 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.4.0)
-    psych (5.2.3)
+    psych (5.2.6)
       date
       stringio
     puma (6.6.0)
@@ -294,7 +287,8 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.2.1)
-    rdoc (6.13.1)
+    rdoc (6.14.0)
+      erb
       psych (>= 4.0.0)
     redis (5.4.0)
       redis-client (>= 0.22.0)
@@ -364,7 +358,7 @@ GEM
       net-sftp (>= 2.1.2)
       net-ssh (>= 2.8.0)
       ostruct
-    stringio (3.1.6)
+    stringio (3.1.7)
     thor (1.3.2)
     thruster (0.1.12)
     thruster (0.1.12-aarch64-linux)
@@ -403,7 +397,6 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  active_model_serializers
   bootsnap
   brakeman
   debug
